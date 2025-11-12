@@ -15,7 +15,7 @@ class dataMahasiswaController extends Controller
     public function index()
     {
         $admin = Auth::guard('admin')->user();
-        $dataMahasiswa = Mahasiswa::latest()->paginate(5);
+        $dataMahasiswa = Mahasiswa::latest()->paginate(500);
         return view('admin.dataMahasiswa', compact('dataMahasiswa', 'admin'));
     }
 
