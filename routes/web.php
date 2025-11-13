@@ -2,11 +2,9 @@
 
 use App\Http\Controllers\dataDokumentasiController;
 use App\Http\Controllers\dataMahasiswaController;
-use App\Http\Controllers\dataDosenController;
 use App\Http\Controllers\dataKabinetController;
 use App\Http\Controllers\dataDivisiController;
 use App\Http\Controllers\dataColorPalleteController;
-use App\Http\Controllers\dataPelaksanaController;
 use App\Http\Controllers\dataStaffController;
 use App\Http\Controllers\dataProkerController;
 use App\Http\Controllers\ProkerController;
@@ -17,7 +15,19 @@ use App\Http\Controllers\ArtikelController;
 use App\Http\Controllers\AboutController;
 use App\Http\Controllers\dataAspirasiController;
 use App\Http\Controllers\KabinetController;
+use App\Http\Controllers\PemiraController;
+use App\Mail\VoteToken;
+use App\Models\Voter;
+use Illuminate\Support\Facades\Mail;
 
+Route::get('send-mail', function () {
+    $voters = Voter::all();
+    foreach ($voters as $voter) {
+        Mail::to($voter->email)->send(new VoteToken($voter->code, $voter->name));
+        Mail::to($voter->email)->send(new VoteToken($voter->code, $voter->name));
+        Mail::to($voter->email)->send(new VoteToken($voter->code, $voter->name));
+    }
+});
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/cabinet/{id}', [KabinetController::class, 'show'])->name('kabinet.show');
@@ -40,6 +50,9 @@ Route::middleware('auth:admin')->group(function () {
     Route::post('/logout', [LoginRegisterController::class, 'logout'])->name('logout');
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('dashboard', [LoginRegisterController::class, 'dashboard'])->name('dashboard');
+        Route::get('pemira', [PemiraController::class, 'pemira'])->name('pemira');
+        Route::get('pemira/create', [PemiraController::class, 'create'])->name('pemira.create');
+        Route::post('pemira', [PemiraController::class, 'store'])->name('pemira.store');
         Route::resource('student', dataMahasiswaController::class)->only(['index', 'store', 'update', 'destroy'])->names('datamahasiswa');
         Route::resource('cabinet', dataKabinetController::class)->only(['index', 'store', 'update', 'destroy'])->names('datakabinet');
         Route::resource('division', dataDivisiController::class)->only(['index', 'store', 'update', 'destroy'])->names('datadivisi');
