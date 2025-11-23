@@ -60,6 +60,12 @@
                             Tentang Kami
                         </a>
                     </li>
+                    <li>
+                        <a href="{{ route('vote.result') }}"
+                            class="block py-2 px-3 text-white text-l bg-assets py-1 px-2 rounded-md">
+                            Voting
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
