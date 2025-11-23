@@ -75,7 +75,7 @@
             <div class="space-y-6">
                 @foreach ($candidates as $index => $candidate)
                     <div class="border-2 border-gray-100 rounded-xl p-6 hover:shadow-lg transition-all">
-                        <div class="flex items-center gap-6 mb-4">
+                        <div class="flex md:flex-row flex-col md:items-center  gap-6 mb-4">
                             <!-- Rank -->
                             <div class="flex-shrink-0">
                                 @if ($index === 0)
