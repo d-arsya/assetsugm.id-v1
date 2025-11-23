@@ -87,6 +87,7 @@
             <script src="{{ asset('libs/simplebar/dist/simplebar.js') }}"></script>
             <script src="{{ asset('js/dashboard.js') }}"></script>
         </div>
+        @yield('scripts')
         <script>
             //Handling invalid form submission
             (() => {

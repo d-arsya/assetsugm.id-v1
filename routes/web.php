@@ -20,16 +20,10 @@ use App\Mail\VoteToken;
 use App\Models\Voter;
 use Illuminate\Support\Facades\Mail;
 
-Route::get('send-mail', function () {
-    $voters = Voter::all();
-    foreach ($voters as $voter) {
-        Mail::to($voter->email)->send(new VoteToken($voter->code, $voter->name));
-        Mail::to($voter->email)->send(new VoteToken($voter->code, $voter->name));
-        Mail::to($voter->email)->send(new VoteToken($voter->code, $voter->name));
-    }
-});
+Route::get('/s/{voter:code}', [PemiraController::class, 'voter']);
+Route::post('/s/{voter:code}', [PemiraController::class, 'vote'])->name('vote.submit');
+Route::get('/voting', [PemiraController::class, 'result'])->name('vote.result');
 Route::get('/', [HomeController::class, 'index'])->name('home');
-
 Route::get('/cabinet/{id}', [KabinetController::class, 'show'])->name('kabinet.show');
 Route::get('/cabinet/{id}/structure', [KabinetController::class, 'strukturKabinet'])->name('kabinet.struktur');
 
@@ -47,11 +41,28 @@ Route::middleware('guest:admin')->group(function () {
 });
 
 Route::middleware('auth:admin')->group(function () {
+    Route::get('send-mail', function () {
+        $voters = Voter::all();
+        foreach ($voters as $voter) {
+            Mail::to($voter->email)->queue(new VoteToken($voter->code, $voter->name));
+        }
+        return back();
+    });
+    Route::get('send-mail/{mail}', function (string $mail) {
+        $voter = Voter::whereEmail($mail)->first();
+        $voter->update(['sended' => now()]);
+        Mail::to($voter->email)->send(new VoteToken($voter->code, $voter->name));
+        return back();
+    });
     Route::post('/logout', [LoginRegisterController::class, 'logout'])->name('logout');
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('dashboard', [LoginRegisterController::class, 'dashboard'])->name('dashboard');
         Route::get('pemira', [PemiraController::class, 'pemira'])->name('pemira');
+        Route::post('pemira/import', [PemiraController::class, 'import'])->name('pemira.import');
         Route::get('pemira/create', [PemiraController::class, 'create'])->name('pemira.create');
+        Route::delete('pemira/{voted}', [PemiraController::class, 'destroy'])->name('pemira.destroy');
+        Route::get('pemira/{voted}/edit', [PemiraController::class, 'edit'])->name('pemira.edit');
+        Route::put('pemira/{voted}', [PemiraController::class, 'update'])->name('pemira.update');
         Route::post('pemira', [PemiraController::class, 'store'])->name('pemira.store');
         Route::resource('student', dataMahasiswaController::class)->only(['index', 'store', 'update', 'destroy'])->names('datamahasiswa');
         Route::resource('cabinet', dataKabinetController::class)->only(['index', 'store', 'update', 'destroy'])->names('datakabinet');

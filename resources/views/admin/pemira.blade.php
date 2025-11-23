@@ -6,14 +6,14 @@
 
     <!-- Header Section -->
     <div class="-mt-16 mb-8">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between md:flex-row flex-col">
             <div>
                 <h1 class="text-4xl font-bold text-gray-800 mb-2">🗳️ Dashboard Pemira</h1>
                 <p class="text-gray-600">Kelola pemilihan ketua ASSETS periode 2025-2026</p>
             </div>
             <div class="flex gap-3">
                 <a href="{{ route('admin.pemira.create') }}"
-                    class="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 font-semibold">
+                    class="p-2 text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 font-semibold">
                     <span class="flex items-center gap-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -22,8 +22,27 @@
                         Tambah Kandidat
                     </span>
                 </a>
+
+                <!-- Import Voters Button -->
+                <form action="{{ route('admin.pemira.import') }}" method="POST" enctype="multipart/form-data"
+                    id="importForm" class="inline-block">
+                    @csrf
+                    <input type="file" name="file" id="fileInput" accept=".xlsx,.xls" class="hidden"
+                        onchange="handleFileSelect(event)">
+                    <label for="fileInput"
+                        class="p-2 text-sm bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 font-semibold cursor-pointer inline-block">
+                        <span class="flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            Import Pemilih
+                        </span>
+                    </label>
+                </form>
+
                 <a href="/send-mail"
-                    class="px-6 py-3 bg-white text-purple-600 border-2 border-purple-600 rounded-xl hover:bg-purple-50 transform hover:-translate-y-0.5 transition-all duration-200 font-semibold">
+                    class="p-2 text-sm bg-white text-purple-600 border-2 border-purple-600 rounded-xl hover:bg-purple-50 transform hover:-translate-y-0.5 transition-all duration-200 font-semibold">
                     <span class="flex items-center gap-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -33,6 +52,27 @@
                     </span>
                 </a>
             </div>
+
+            <!-- Loading Modal -->
+            <div id="loadingModal"
+                class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+                <div class="bg-white rounded-2xl p-8 max-w-sm w-full mx-4 text-center shadow-2xl">
+                    <div class="mb-4">
+                        <svg class="animate-spin h-16 w-16 mx-auto text-purple-600" xmlns="http://www.w3.org/2000/svg"
+                            fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Mengimpor Data...</h3>
+                    <p class="text-gray-600 text-sm">Mohon tunggu, sedang memproses file Excel</p>
+                </div>
+            </div>
+
+
         </div>
     </div>
 
@@ -97,7 +137,7 @@
                     </svg>
                 </div>
                 <span
-                    class="text-3xl font-bold">{{ $voters->count() > 0 ? round(($voters->whereNotNull('voter_id', true)->count() / $voters->count()) * 100, 1) : 0 }}%</span>
+                    class="text-3xl font-bold">{{ $voters->count() > 0 ? round(($voters->whereNotNull('voted_id', true)->count() / $voters->count()) * 100, 1) : 0 }}%</span>
             </div>
             <h3 class="text-lg font-semibold opacity-90">Partisipasi</h3>
             <p class="text-sm opacity-75 mt-1">Tingkat kehadiran</p>
@@ -147,14 +187,18 @@
                                     </div>
 
                                     <div class="flex gap-2 w-full">
-                                        <button
+                                        <a href="/admin/pemira/{{ $candidate->id }}/edit"
                                             class="flex-1 px-4 py-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 transition-colors font-medium text-sm">
                                             Edit
-                                        </button>
-                                        <button
-                                            class="flex-1 px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors font-medium text-sm">
-                                            Hapus
-                                        </button>
+                                        </a>
+                                        <form action="/admin/pemira/{{ $candidate->id }}" method="post">
+                                            @method('DELETE')
+                                            @csrf
+                                            <button type="submit"
+                                                class="flex-1 px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors font-medium text-sm">
+                                                Hapus
+                                            </button>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
@@ -273,15 +317,15 @@
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex gap-2">
                                     @if (!$voter->sended)
-                                        <button
+                                        <a href="/send-mail/{{ $voter->email }}"
                                             class="px-3 py-1.5 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors text-xs font-medium">
                                             Kirim Email
-                                        </button>
+                                        </a>
                                     @else
-                                        <button
+                                        <a href="/send-mail/{{ $voter->email }}"
                                             class="px-3 py-1.5 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 transition-colors text-xs font-medium">
                                             Kirim Ulang
-                                        </button>
+                                        </a>
                                     @endif
                                     <button
                                         class="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors text-xs font-medium">
@@ -310,4 +354,42 @@
         </div>
     </div>
 
+@endsection
+@section('scripts')
+    <script>
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+
+            if (file) {
+                // Validate file type
+                const validTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'application/vnd.ms-excel'
+                ];
+                if (!validTypes.includes(file.type)) {
+                    alert('❌ File harus berformat Excel (.xlsx atau .xls)');
+                    event.target.value = '';
+                    return;
+                }
+
+                // Validate file size (max 5MB)
+                const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+                if (file.size > maxSize) {
+                    alert('❌ Ukuran file maksimal 5MB');
+                    event.target.value = '';
+                    return;
+                }
+
+                // Show loading modal
+                document.getElementById('loadingModal').classList.remove('hidden');
+
+                // Auto submit form
+                document.getElementById('importForm').submit();
+            }
+        }
+
+        // Hide loading modal if page is loaded (in case of error)
+        window.addEventListener('load', function() {
+            document.getElementById('loadingModal').classList.add('hidden');
+        });
+    </script>
 @endsection
