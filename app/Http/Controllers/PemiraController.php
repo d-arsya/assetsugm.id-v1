@@ -66,10 +66,10 @@ class PemiraController extends Controller
             'avatar' => 'required|file',
         ]);
         if ($request->hasFile('cv')) {
-            $file = $request->file('cv');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $path = $file->storeAs('cv', $filename, 'public'); // disimpan di storage/app/public/cv
-            $validated['cv'] = $path; // simpan path ke database
+            $path = $request->file('cv')->store('cv', 'public');
+            $link = Storage::url($path);
+            $url = asset($link);
+            $validated['cv'] = $url;
         }
         if ($request->hasFile('avatar')) {
             $path = $request->file('avatar')->store('avatar', 'public');
